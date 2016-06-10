@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using Octopus.Client.Model;
 
 using OctopusDeploy.CCTray.Models;
@@ -38,13 +37,11 @@ namespace OctopusDeploy.CCTray.Extensions
             return new Project()
             {
                 Id = dashboardItem.ProjectId,
-                Name = string.Format("Deploying {0} to {1}", currentDeploymentTask.ProjectName, currentDeploymentTask.EnvironmentName),
+                Name = $"Deploying {currentDeploymentTask.ProjectName} to {currentDeploymentTask.EnvironmentName}",
                 Activity = ((TaskState)dashboardItem.State).ToActivity(),
                 LastBuildStatus =  ((TaskState)previousDeploymentTask.TaskResource.State).ToLastBuildStatus(),
                 LastBuildLabel = previousDeploymentTask.ReleaseVersion,
-                LastBuildTime = previousDeploymentTask.TaskResource.CompletedTime.HasValue
-                    ? previousDeploymentTask.TaskResource.CompletedTime.Value.DateTime
-                    : DateTime.Now,
+                LastBuildTime = previousDeploymentTask.TaskResource.CompletedTime?.DateTime ?? DateTime.Now,
                 WebUrl = dashboardItem.Links["Task"]
             };
         }

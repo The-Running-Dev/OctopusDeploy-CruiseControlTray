@@ -12,18 +12,18 @@ namespace WebStatus
         {
             _serverUrl = ConfigurationManager.AppSettings["ServerUrl"];
             _apiKey = ConfigurationManager.AppSettings["ApiKey"];
-            _projectName = ConfigurationManager.AppSettings["ProjectName"];
+            _projects = ConfigurationManager.AppSettings["Projects"];
 
             _cc = new CCTray(_serverUrl, _apiKey);
 
             Response.AddHeader("Content-Type", "application/xml");
-            Response.Write(_cc.GetProjectStatusAsCCTrayStatus(_projectName));
+            Response.Write(_cc.GetProjectStatusAsCCTrayStatus(_projects));
         }
 
         private CCTray _cc;
 
         private string _serverUrl;
         private string _apiKey;
-        private string _projectName;
+        private string _projects;
     }
 }

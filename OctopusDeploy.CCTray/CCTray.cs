@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Xml.Serialization;
 using System.Collections.Generic;
-
+using System.Text;
 using Octopus.Client;
 using Octopus.Client.Model;
 
@@ -16,6 +16,19 @@ namespace OctopusDeploy.CCTray
         public CCTray(string serverUrl, string apiKey)
         {
             _repository = new OctopusRepository(new OctopusServerEndpoint(serverUrl, apiKey));
+        }
+
+        /// <summary>
+        /// </summary>
+        /// <param name="projectNames"></param>
+        /// <returns></returns>
+        public IEnumerable<ProjectResource> GetProjects(string projectNames)
+        {
+            var projectList = new List<ProjectResource>();
+
+            projectList.AddRange(projectNames.Split(';').Select(project => _repository.Projects.FindByName(project)));
+
+            return projectList;
         }
 
         public ProjectResource GetProject(string projectName)
@@ -82,28 +95,32 @@ namespace OctopusDeploy.CCTray
             return environments.Select(e => completedDeployments.FirstOrDefault(x => x.EnvironmentId == e.Id)).Where(task => task != null).ToList();
         }
 
-        public string GetProjectStatusAsCCTrayStatus(string projectName)
+        public string GetProjectStatusAsCCTrayStatus(string projectNames)
         {
-            string xmlEncodedList;
+            var ccTrayProjects = new Projects();
+            var statusXml = string.Empty;
 
-            var dashboard = GetDashboard(projectName);
-            var deployments = GetProjectLastDeploymentsByProjectName(projectName);
+            foreach (var projectName in projectNames.Split(';'))
+            {
+                var dashboard = GetDashboard(projectName);
+                var deployments = GetProjectLastDeploymentsByProjectName(projectName);
 
-            var previousDeploymentTasks = (from deployment in deployments
-                                           let task = _repository.Tasks.Get(deployment.TaskId)
-                                           let release = _repository.Releases.Get(deployment.ReleaseId)
-                                           let environment = dashboard.Environments.FirstOrDefault(x => x.Id == deployment.EnvironmentId)
-                                           let environmentName = environment != null ? environment.Name : string.Empty
-                                           select new DeploymentTask()
-                                           {
-                                               TaskResource = task,
-                                               EnvironmentId = deployment.EnvironmentId,
-                                               EnvironmentName = environmentName,
-                                               ReleaseId = deployment.ReleaseId,
-                                               ReleaseVersion = release.Version
-                                           }).ToList();
+                var deploymentTasks = (from deployment in deployments
+                                       let task = _repository.Tasks.Get(deployment.TaskId)
+                                       let release = _repository.Releases.Get(deployment.ReleaseId)
+                                       let environment = dashboard.Environments.FirstOrDefault(x => x.Id == deployment.EnvironmentId)
+                                       let environmentName = environment != null ? environment.Name : string.Empty
+                                       select new DeploymentTask()
+                                       {
+                                           TaskResource = task,
+                                           EnvironmentId = deployment.EnvironmentId,
+                                           EnvironmentName = environmentName,
+                                           ReleaseId = deployment.ReleaseId,
+                                           ReleaseVersion = release.Version
+                                       }).ToList();
 
-            var ccTrayStatus = dashboard.ToProjects(previousDeploymentTasks);
+                ccTrayProjects.ListOfProjects.AddRange(dashboard.ToCCTrayProjects(deploymentTasks));
+            }
 
             // Create our own namespaces for the output
             var ns = new XmlSerializerNamespaces();
@@ -113,12 +130,12 @@ namespace OctopusDeploy.CCTray
 
             using (var writer = new StringWriter())
             {
-                new XmlSerializer(ccTrayStatus.GetType()).Serialize(writer, ccTrayStatus, ns);
+                new XmlSerializer(ccTrayProjects.GetType()).Serialize(writer, ccTrayProjects, ns);
 
-                xmlEncodedList = writer.GetStringBuilder().ToString();
+                statusXml = writer.GetStringBuilder().ToString();
             }
 
-            return xmlEncodedList;
+            return statusXml;
         }
 
         private readonly OctopusRepository _repository;

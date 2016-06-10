@@ -14,19 +14,33 @@ namespace OctopusDeploy.CCTray.Tests
         {
             _serverUrl = ConfigurationManager.AppSettings["ServerUrl"];
             _apiKey = ConfigurationManager.AppSettings["ApiKey"];
-            _projectName = ConfigurationManager.AppSettings["ProjectName"];
+            _projects = ConfigurationManager.AppSettings["Projects"];
 
             _cc = new CCTray(_serverUrl, _apiKey);
         }
 
         [TestMethod]
-        public void Should_Get_Projects()
+        public void Should_Get_Project()
         {
-            var p = _cc.GetProject(_projectName);
+            var project = _projects.Contains(";") ? _projects.Split(';')[0] : _projects;
+            var p = _cc.GetProject(project);
 
             Debug.WriteLine("Id: {0}, Name: {1}", p.Id, p.Name);
 
             Assert.IsTrue(!string.IsNullOrEmpty(p.Id));
+        }
+
+        [TestMethod]
+        public void Should_Get_Projects()
+        {
+            var projectList = _cc.GetProjects(_projects);
+
+            foreach (var p in projectList)
+            {
+                Debug.WriteLine("Id: {0}, Name: {1}", p.Id, p.Name);
+
+                Assert.IsTrue(!string.IsNullOrEmpty(p.Id));
+            }
         }
 
         [TestMethod]
@@ -45,7 +59,8 @@ namespace OctopusDeploy.CCTray.Tests
         [TestMethod]
         public void Should_Get_Project_Tasks()
         {
-            var tasks = _cc.GetProjectTasks(_projectName).ToList();
+            var project = _projects.Contains(";") ? _projects.Split(';')[0] : _projects;
+            var tasks = _cc.GetProjectTasks(project).ToList();
 
             foreach (var t in tasks)
             {
@@ -58,7 +73,8 @@ namespace OctopusDeploy.CCTray.Tests
         [TestMethod]
         public void Should_Get_All_Project_Deployments()
         {
-            var deployments = _cc.GetProjectDeploymentsByProjectName(_projectName).ToList();
+            var project = _projects.Contains(";") ? _projects.Split(';')[0] : _projects;
+            var deployments = _cc.GetProjectDeploymentsByProjectName(project).ToList();
 
             foreach (var d in deployments)
             {
@@ -71,7 +87,8 @@ namespace OctopusDeploy.CCTray.Tests
         [TestMethod]
         public void Should_Get_Last_Project_Deployment()
         {
-            var deployments = _cc.GetProjectLastDeploymentsByProjectName(_projectName).ToList();
+            var project = _projects.Contains(";") ? _projects.Split(';')[0] : _projects;
+            var deployments = _cc.GetProjectLastDeploymentsByProjectName(project).ToList();
 
             foreach (var d in deployments)
             {
@@ -84,7 +101,8 @@ namespace OctopusDeploy.CCTray.Tests
         [TestMethod]
         public void Should_Get_Dashboard()
         {
-            var dashboard = _cc.GetDashboard(_projectName);
+            var project = _projects.Contains(";") ? _projects.Split(';')[0] : _projects;
+            var dashboard = _cc.GetDashboard(project);
 
             foreach (var e in dashboard.Environments)
             {
@@ -96,7 +114,7 @@ namespace OctopusDeploy.CCTray.Tests
                 var environment = dashboard.Environments.FirstOrDefault(x => x.Id == i.EnvironmentId);
                 var environmentName = environment != null ? environment.Name : string.Empty;
 
-                Debug.WriteLine("Deploying {0} v{1} to {2}", _projectName, i.ReleaseVersion, environmentName);
+                Debug.WriteLine("Deploying {0} v{1} to {2}", _projects, i.ReleaseVersion, environmentName);
             }
 
             Assert.IsTrue(dashboard.Environments.Any());
@@ -106,7 +124,7 @@ namespace OctopusDeploy.CCTray.Tests
         [TestMethod]
         public void Should_Get_Project_Status_As_CC_Tray_Status()
         {
-            var statusXml = _cc.GetProjectStatusAsCCTrayStatus(_projectName);
+            var statusXml = _cc.GetProjectStatusAsCCTrayStatus(_projects);
 
             Debug.WriteLine(statusXml);
 
@@ -116,6 +134,6 @@ namespace OctopusDeploy.CCTray.Tests
         private static CCTray _cc;
         private static string _serverUrl;
         private static string _apiKey;
-        private static string _projectName;
+        private static string _projects;
     }
 }
