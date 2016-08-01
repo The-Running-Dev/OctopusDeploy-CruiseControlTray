@@ -88,7 +88,7 @@ namespace OctopusDeploy.CCTray
             var completedDeployments = (
                 from deployment in deployments
                 let task = _repository.Tasks.Get(deployment.TaskId)
-                where task.State != Octopus.Platform.Model.TaskState.Executing
+                where task.State != Octopus.Client.Model.TaskState.Executing
                 select deployment).ToList();
 
             // Return only the first deployment for each environment

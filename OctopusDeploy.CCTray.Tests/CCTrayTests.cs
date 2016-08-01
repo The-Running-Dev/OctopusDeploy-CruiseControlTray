@@ -1,15 +1,14 @@
 ﻿using System.Linq;
 using System.Diagnostics;
 using System.Configuration;
-
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace OctopusDeploy.CCTray.Tests
 {
-    [TestClass]
+    [TestFixture]
     public class CCTrayTests
     {
-        [ClassInitialize]
+        [SetUp]
         public static void ClassInitialize(TestContext context)
         {
             _serverUrl = ConfigurationManager.AppSettings["ServerUrl"];
@@ -19,7 +18,7 @@ namespace OctopusDeploy.CCTray.Tests
             _cc = new CCTray(_serverUrl, _apiKey);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_Get_Project()
         {
             var project = _projects.Contains(";") ? _projects.Split(';')[0] : _projects;
@@ -30,7 +29,7 @@ namespace OctopusDeploy.CCTray.Tests
             Assert.IsTrue(!string.IsNullOrEmpty(p.Id));
         }
 
-        [TestMethod]
+        [Test]
         public void Should_Get_Projects()
         {
             var projectList = _cc.GetProjects(_projects);
@@ -43,7 +42,7 @@ namespace OctopusDeploy.CCTray.Tests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void Should_Get_Environments()
         {
             var environments = _cc.GetEnvironments().ToList();
@@ -56,7 +55,7 @@ namespace OctopusDeploy.CCTray.Tests
             Assert.IsTrue(environments.Any());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_Get_Project_Tasks()
         {
             var project = _projects.Contains(";") ? _projects.Split(';')[0] : _projects;
@@ -70,7 +69,7 @@ namespace OctopusDeploy.CCTray.Tests
             Assert.IsTrue(tasks.Any());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_Get_All_Project_Deployments()
         {
             var project = _projects.Contains(";") ? _projects.Split(';')[0] : _projects;
@@ -84,7 +83,7 @@ namespace OctopusDeploy.CCTray.Tests
             Assert.IsTrue(deployments.Any());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_Get_Last_Project_Deployment()
         {
             var project = _projects.Contains(";") ? _projects.Split(';')[0] : _projects;
@@ -98,7 +97,7 @@ namespace OctopusDeploy.CCTray.Tests
             Assert.IsTrue(deployments.Any());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_Get_Dashboard()
         {
             var project = _projects.Contains(";") ? _projects.Split(';')[0] : _projects;
@@ -121,7 +120,7 @@ namespace OctopusDeploy.CCTray.Tests
             Assert.IsTrue(dashboard.Items.Any());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_Get_Project_Status_As_CC_Tray_Status()
         {
             var statusXml = _cc.GetProjectStatusAsCCTrayStatus(_projects);

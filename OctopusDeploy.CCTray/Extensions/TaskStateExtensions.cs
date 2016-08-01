@@ -1,4 +1,5 @@
 ﻿using OctopusDeploy.CCTray.Models;
+using TaskState = Octopus.Client.Model.TaskState;
 
 namespace OctopusDeploy.CCTray.Extensions
 {
